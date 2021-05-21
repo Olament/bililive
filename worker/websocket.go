@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"math/rand"
 	"net/url"
 	"time"
@@ -11,50 +12,70 @@ import (
 const (
 	heartbeatInv   = time.Second * 10
 	reconnectDelay = time.Second * 3
+	timeout        = time.Second * 30
 )
 
 func randomID() int {
 	return 1e15 + int(rand.Float32()*2e15)
 }
 
-func connect(roomID int) error {
+func connect(roomID int, out chan *message) error {
 	u := url.URL{
 		Scheme: "wss",
 		Host:   "broadcastlv.chat.bilibili.com:2245",
 		Path:   "sub",
 	}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-	defer conn.Close()
 	if err != nil {
 		return err
 	}
 
+
 	// send join room request
+	conn.SetWriteDeadline(time.Now().Add(timeout))
 	err = conn.WriteMessage(websocket.BinaryMessage, joinRoom(roomID, randomID()))
 	if err != nil {
 		return err
 	}
 
-	// handle heartbeat
+	// handle inbound message and periodically do heartbeat
 	heartbeat := heartbeat()
-	go func() {
-		for range time.Tick(heartbeatInv) {
-			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
-		}
-	}()
-
-	// handle inbound message
+	ticker := time.NewTicker(heartbeatInv)
 	for {
-		_, b, err := conn.ReadMessage()
-		if err != nil {
-			return err
-		}
-		for _, msg := range decode(b) {
-			parseMessage(msg)
+		select {
+		case <-ticker.C:
+			conn.SetWriteDeadline(time.Now().Add(timeout))
+			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
+		default:
+			conn.SetReadDeadline(time.Now().Add(timeout))
+			_, b, err := conn.ReadMessage()
+			if err != nil {
+				return err
+			}
+			for _, msg := range decode(b) {
+				out <- msg
+			}
 		}
 	}
 }
 
+// Connect is a blocking function that reads the message from broadcast with roomID and
+// then push it to the out channel
+func Connect(roomID int, out chan *message) {
+	err := connect(roomID, out)
+	if err != nil {
+		fmt.Printf("worker/websocket: [%d] %v\n", roomID, err)
+	}
+	time.AfterFunc(reconnectDelay + time.Duration(rand.Int31n(100)), func() {
+		fmt.Printf("worker/websocket: [%d] reconnect...\n", roomID)
+		Connect(roomID, out)
+	})
+}
+
 func SimpleConnect() {
-	connect(22333522)
+	out := make(chan *message, 10)
+	go Connect(21452505, out)
+	for msg := range out {
+		parseMessage(msg)
+	}
 }
