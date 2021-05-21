@@ -1,44 +1,60 @@
 package worker
 
 import (
-	"fmt"
-	"github.com/gorilla/websocket"
+	"math/rand"
 	"net/url"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
-func SimpleConnect() {
+const (
+	heartbeatInv   = time.Second * 10
+	reconnectDelay = time.Second * 3
+)
+
+func randomID() int {
+	return 1e15 + int(rand.Float32()*2e15)
+}
+
+func connect(roomID int) error {
 	u := url.URL{
 		Scheme: "wss",
-		Host: "broadcastlv.chat.bilibili.com:2245",
-		Path: "sub",
+		Host:   "broadcastlv.chat.bilibili.com:2245",
+		Path:   "sub",
 	}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	defer conn.Close()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	roomID := 915905
-	randomID := 2007177791539429
-	conn.WriteMessage(websocket.BinaryMessage, joinRoom(roomID, randomID))
+	// send join room request
+	err = conn.WriteMessage(websocket.BinaryMessage, joinRoom(roomID, randomID()))
+	if err != nil {
+		return err
+	}
+
+	// handle heartbeat
+	heartbeat := heartbeat()
 	go func() {
-		conn.WriteMessage(websocket.BinaryMessage, heartbeat())
-		for range time.Tick(time.Second * 10) {
-			err := conn.WriteMessage(websocket.BinaryMessage, heartbeat())
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println("heartbeat!")
+		for range time.Tick(heartbeatInv) {
+			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
 		}
 	}()
 
+	// handle inbound message
 	for {
 		_, b, err := conn.ReadMessage()
 		if err != nil {
-			panic(err)
+			return err
 		}
 		for _, msg := range decode(b) {
-			fmt.Println(msg)
+			parseMessage(msg)
 		}
 	}
+}
+
+func SimpleConnect() {
+	connect(22333522)
 }
