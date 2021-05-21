@@ -1,4 +1,4 @@
-module BilibiliLive
+module bililive
 
 go 1.14
 

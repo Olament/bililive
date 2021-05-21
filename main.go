@@ -1,6 +1,6 @@
 package main
 
-import "BilibiliLive/worker"
+import "bililive/worker"
 
 func main() {
 	worker.SimpleConnect()
