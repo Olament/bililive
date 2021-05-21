@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 )
 
 const (
@@ -43,19 +42,12 @@ type message struct {
 	version       uint16
 	operation     uint32
 	sequenceID    uint32
-	body          string
+	body          []byte
 }
 
-func (msg message) String() string {
-	return fmt.Sprintf("OP: %d\nVER: %d\nBODY: %s\n",
-		msg.operation,
-		msg.version,
-		msg.body)
-}
-
-func decode(buffer []byte) []message {
+func decode(buffer []byte) []*message {
 	offset := 0
-	messages := []message{}
+	messages := []*message{}
 	for offset < len(buffer) {
 		message := message{
 			packageLength: binary.BigEndian.Uint32(buffer[offset+0:]),
@@ -64,15 +56,15 @@ func decode(buffer []byte) []message {
 			operation:     binary.BigEndian.Uint32(buffer[offset+8:]),
 			sequenceID:    binary.BigEndian.Uint32(buffer[offset+12:]),
 		}
+		bodyBuffer := buffer[offset+int(message.headerLength) : offset+int(message.packageLength)]
 		switch message.operation {
 		case opAuthReply:
 			// do nothing
 		case opHeartbeatReply:
-			message.body = strconv.Itoa(int(binary.BigEndian.Uint32(buffer[offset+int(message.headerLength):])))
+			message.body = bodyBuffer
 		default:
-			bodyBuffer := buffer[offset+int(message.headerLength) : offset+int(message.packageLength)]
 			if message.version == verJSON {
-				message.body = string(bodyBuffer)
+				message.body = bodyBuffer
 			}
 			if message.version == verZLIB {
 				r, _ := zlib.NewReader(bytes.NewReader(bodyBuffer))
@@ -82,7 +74,7 @@ func decode(buffer []byte) []message {
 		}
 		offset += int(message.packageLength)
 		if message.version != verZLIB {
-			messages = append(messages, message)
+			messages = append(messages, &message)
 		}
 	}
 	return messages
@@ -116,6 +108,3 @@ func joinRoom(roomID int, uid int) []byte {
 func heartbeat() []byte {
 	return encode(opHeartbeat, "")
 }
-
-
-
