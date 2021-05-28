@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -19,7 +20,7 @@ func randomID() int {
 	return 1e15 + int(rand.Float32()*2e15)
 }
 
-func connect(roomID int, out chan *message) error {
+func connect(ctx context.Context, roomID int, out chan *message) error {
 	u := url.URL{
 		Scheme: "wss",
 		Host:   "broadcastlv.chat.bilibili.com:2245",
@@ -29,7 +30,6 @@ func connect(roomID int, out chan *message) error {
 	if err != nil {
 		return err
 	}
-
 
 	// send join room request
 	conn.SetWriteDeadline(time.Now().Add(timeout))
@@ -43,6 +43,9 @@ func connect(roomID int, out chan *message) error {
 	ticker := time.NewTicker(heartbeatInv)
 	for {
 		select {
+		case <-ctx.Done():
+			close(out)
+			return nil
 		case <-ticker.C:
 			conn.SetWriteDeadline(time.Now().Add(timeout))
 			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
@@ -61,21 +64,18 @@ func connect(roomID int, out chan *message) error {
 
 // Connect is a blocking function that reads the message from broadcast with roomID and
 // then push it to the out channel
-func Connect(roomID int, out chan *message) {
-	err := connect(roomID, out)
+func Connect(ctx context.Context, roomID int, out chan *message) {
+	err := connect(ctx, roomID, out)
 	if err != nil {
 		fmt.Printf("worker/websocket: [%d] %v\n", roomID, err)
 	}
-	time.AfterFunc(reconnectDelay + time.Duration(rand.Int31n(100)), func() {
-		fmt.Printf("worker/websocket: [%d] reconnect...\n", roomID)
-		Connect(roomID, out)
-	})
-}
-
-func SimpleConnect() {
-	out := make(chan *message, 10)
-	go Connect(21452505, out)
-	for msg := range out {
-		parseMessage(msg)
+	select {
+	case <-ctx.Done():
+		return
+	default:
+		time.AfterFunc(reconnectDelay+time.Duration(rand.Int31n(100)), func() {
+			fmt.Printf("worker/websocket: [%d] reconnect...\n", roomID)
+			Connect(ctx, roomID, out)
+		})
 	}
 }
