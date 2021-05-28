@@ -80,19 +80,6 @@ func decode(buffer []byte) []*message {
 	return messages
 }
 
-func parseMessage(msg *message) {
-	switch msg.operation {
-	case opHeartbeatReply:
-		fmt.Printf("HEARTBEAT\nonline: %d\n\n", binary.BigEndian.Uint32(msg.body))
-	case opSendSMSReply:
-		fmt.Printf("SMS_REPLY\ndata: %s\n\n", string(msg.body))
-	case opAuthReply:
-		fmt.Printf("AUTH\n\n")
-	default:
-		fmt.Println("worker/protocol: unidentified message type")
-	}
-}
-
 func encode(op uint32, payload string) (buffer []byte) {
 	packageLength := headerLength + len(payload)
 	buff := make([]byte, packageLength)
