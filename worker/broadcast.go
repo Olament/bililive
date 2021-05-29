@@ -24,7 +24,7 @@ type broadcast struct {
 	SilverCoin             uint64
 
 	cancel context.CancelFunc
-	isStop bool
+	isStop uint32
 }
 
 func (b *broadcast) start() {
@@ -38,15 +38,19 @@ func (b *broadcast) start() {
 }
 
 func (b *broadcast) stop() {
-	b.cancel()
-	b.isStop = true
-	fmt.Printf("%+v\n", b)
+	if ok := atomic.CompareAndSwapUint32(&b.isStop, 0, 1); ok {
+		b.cancel()
+		fmt.Printf("%+v\n", b)
+	}
 }
 
 func (b *broadcast) parseMessage(msg *message) {
 	switch msg.operation {
 	case opHeartbeatReply:
 		popularity := binary.BigEndian.Uint32(msg.body)
+		if popularity == 1 {
+			b.stop()
+		}
 		atomic.StoreUint32(&b.Popularity, popularity)
 	case opSendSMSReply:
 		switch gjson.GetBytes(msg.body, "cmd").String() {

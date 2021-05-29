@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (h *Hub) update() {
 	}
 	// removing stopped broadcast
 	h.broadcasts.Range(func(key, value interface{}) bool {
-		if value.(*broadcast).isStop {
+		if atomic.LoadUint32(&value.(*broadcast).isStop) == 1 {
 			h.broadcasts.Delete(key)
 		}
 		return true
