@@ -1,26 +1,30 @@
 package worker
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
+	"sync/atomic"
+	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 type broadcast struct {
-	Roomid                 int
-	Shortid                int
-	UID                    int
+	Roomid                 int64
+	UID                    int64
 	Uname                  string
-	Popularity             int
+	Popularity             uint32
 	Title                  string
 	Usercover              string
 	Keyframe               string
-	Livetime               string
+	Livetime               time.Time
 	Participantduring10Min int
+	GoldCoin               uint64
+	SilverCoin             uint64
 
 	cancel context.CancelFunc
+	isStop bool
 }
 
 func (b *broadcast) start() {
@@ -35,19 +39,34 @@ func (b *broadcast) start() {
 
 func (b *broadcast) stop() {
 	b.cancel()
+	b.isStop = true
+	fmt.Printf("%+v\n", b)
 }
 
 func (b *broadcast) parseMessage(msg *message) {
 	switch msg.operation {
 	case opHeartbeatReply:
-		fmt.Printf("HEARTBEAT\nonline: %d\n\n", binary.BigEndian.Uint32(msg.body))
+		popularity := binary.BigEndian.Uint32(msg.body)
+		atomic.StoreUint32(&b.Popularity, popularity)
 	case opSendSMSReply:
-		buffer := bytes.Buffer{}
-		json.Indent(&buffer, msg.body, "", "\t")
-		fmt.Printf("SMS_REPLY\ndata: %s\n\n", buffer.String())
+		switch gjson.GetBytes(msg.body, "cmd").String() {
+		case "COMBO_SEND", "SEND_GIFT":
+			res := gjson.GetManyBytes(msg.body, "data.coin_type", "data.total_coin")
+			if res[0].String() == "silver" {
+				atomic.AddUint64(&b.SilverCoin, res[1].Uint())
+			} else {
+				atomic.AddUint64(&b.GoldCoin, res[1].Uint())
+			}
+		case "GUARD_BUY", "SUPER_CHAT_MESSAGE":
+			res := gjson.GetBytes(msg.body, "data.price")
+			atomic.AddUint64(&b.GoldCoin, res.Uint())
+		case "DANMU_MSG":
+		// TODO: handle DanMu
+		case "PREPARING":
+			b.stop()
+		}
 	case opAuthReply:
-		fmt.Printf("AUTH\n\n")
 	default:
-		fmt.Println("worker/protocol: unidentified message type")
+		fmt.Println("worker/broadcast: unidentified message type")
 	}
 }
