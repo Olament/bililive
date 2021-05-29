@@ -40,6 +40,8 @@ func newBroadcast(res gjson.Result) *Broadcast {
 		Usercover: res.Get("cover").String(),
 		Keyframe:  res.Get("system_cover").String(),
 		Livetime:  time.Now(),
+		Popularity: uint32(res.Get("online").Int()),
+		MaxPopularity: uint32(res.Get("online").Int()),
 	}
 	go b.start()
 	return &b
