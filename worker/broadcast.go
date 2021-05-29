@@ -20,6 +20,7 @@ type broadcast struct {
 	Usercover              string
 	Keyframe               string
 	Livetime               time.Time
+	Endtime                time.Time
 	Participantduring10Min int
 	GoldCoin               uint64
 	SilverCoin             uint64
@@ -41,6 +42,7 @@ func (b *broadcast) start() {
 func (b *broadcast) stop() {
 	if ok := atomic.CompareAndSwapUint32(&b.isStop, 0, 1); ok {
 		b.cancel()
+		b.Endtime = time.Now()
 		fmt.Printf("%+v\n", b)
 	}
 }
