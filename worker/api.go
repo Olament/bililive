@@ -3,6 +3,7 @@ package worker
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"sort"
 )
 
 type Payload struct {
@@ -16,6 +17,9 @@ func (h *Hub) List() gin.HandlerFunc {
 		h.broadcasts.Range(func(key, value interface{}) bool {
 			list = append(list, value.(*Broadcast).Copy())
 			return true
+		})
+		sort.SliceStable(list, func(i, j int) bool {
+			return list[i].Participantduring10Min > list[j].Participantduring10Min
 		})
 		payload := Payload{
 			Count: len(list),
