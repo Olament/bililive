@@ -15,6 +15,7 @@ type broadcast struct {
 	UID                    int64
 	Uname                  string
 	Popularity             uint32
+	MaxPopularity          uint32
 	Title                  string
 	Usercover              string
 	Keyframe               string
@@ -48,10 +49,13 @@ func (b *broadcast) parseMessage(msg *message) {
 	switch msg.operation {
 	case opHeartbeatReply:
 		popularity := binary.BigEndian.Uint32(msg.body)
+		atomic.StoreUint32(&b.Popularity, popularity)
 		if popularity == 1 {
 			b.stop()
 		}
-		atomic.StoreUint32(&b.Popularity, popularity)
+		if popularity > b.MaxPopularity {
+			atomic.StoreUint32(&b.MaxPopularity, popularity)
+		}
 	case opSendSMSReply:
 		switch gjson.GetBytes(msg.body, "cmd").String() {
 		case "COMBO_SEND", "SEND_GIFT":
