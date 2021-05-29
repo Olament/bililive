@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	heartbeatInv   = time.Second * 10
+	heartbeatInv   = time.Second * 20
 	reconnectDelay = time.Second * 3
-	timeout        = time.Second * 30
+	timeout        = time.Second * 60
 )
 
 func randomID() int {
@@ -32,7 +32,6 @@ func connect(ctx context.Context, roomID int64, out chan *message) error {
 	}
 
 	// send join room request
-	conn.SetWriteDeadline(time.Now().Add(timeout))
 	err = conn.WriteMessage(websocket.BinaryMessage, joinRoom(roomID, randomID()))
 	if err != nil {
 		return err
@@ -47,10 +46,8 @@ func connect(ctx context.Context, roomID int64, out chan *message) error {
 			close(out)
 			return nil
 		case <-ticker.C:
-			conn.SetWriteDeadline(time.Now().Add(timeout))
 			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
 		default:
-			conn.SetReadDeadline(time.Now().Add(timeout))
 			_, b, err := conn.ReadMessage()
 			if err != nil {
 				return err
