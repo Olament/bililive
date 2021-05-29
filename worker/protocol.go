@@ -101,7 +101,7 @@ func encode(op uint32, payload string) (buffer []byte) {
 	return buff
 }
 
-func joinRoom(roomID int, uid int) []byte {
+func joinRoom(roomID int64, uid int) []byte {
 	payload := fmt.Sprintf(`{"uid":%d,"roomid":%d,"protover":2,"platform":"3rd_party"}`, uid, roomID)
 	return encode(opAuth, payload)
 }
