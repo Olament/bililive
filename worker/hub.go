@@ -24,9 +24,11 @@ func (h *Hub) Init() {
 	h.broadcasts = sync.Map{}
 
 	h.update()
-	for _ = range time.Tick(time.Minute * 1) {
-		h.update()
-	}
+	go func() {
+		for _ = range time.Tick(time.Minute * 1) {
+			h.update()
+		}
+	}()
 }
 
 func newBroadcast(res gjson.Result) *Broadcast {
