@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 )
@@ -107,4 +108,19 @@ func joinRoom(roomID int, uid int) []byte {
 
 func heartbeat() []byte {
 	return encode(opHeartbeat, "")
+}
+
+func (m *message) String() string {
+	switch m.operation {
+	case opSendSMSReply:
+		b := bytes.Buffer{}
+		json.Indent(&b, m.body, "", "\t")
+		return fmt.Sprintf("SMS_REPLY\n%s\n", b.String())
+	case opAuthReply:
+		return "Auth\n"
+	case opHeartbeatReply:
+		return fmt.Sprintf("HEARTBEAT\nonline: %d\n", binary.BigEndian.Uint32(m.body))
+	default:
+		return "unidentified message type"
+	}
 }
