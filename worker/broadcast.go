@@ -11,19 +11,19 @@ import (
 )
 
 type Broadcast struct {
-	Roomid                 int64
-	UID                    int64
-	Uname                  string
-	Popularity             uint32
-	MaxPopularity          uint32
-	Title                  string
-	Usercover              string
-	Keyframe               string
-	Livetime               time.Time
-	Endtime                time.Time
-	Participantduring10Min int
-	GoldCoin               uint64
-	SilverCoin             uint64
+	Roomid                 int64     `json:"roomid"`
+	UID                    int64     `json:"uid"`
+	Uname                  string    `json:"uname"`
+	Popularity             uint32    `json:"popularity"`
+	MaxPopularity          uint32    `json:"max_popularity"`
+	Title                  string    `json:"title"`
+	Usercover              string    `json:"usercover"`
+	Keyframe               string    `json:"keyframe"`
+	Livetime               time.Time `json:"livetime"`
+	Endtime                time.Time `json:"endtime"`
+	Participantduring10Min int       `json:"participantduring_10_min"`
+	GoldCoin               uint64    `json:"gold_coin"`
+	SilverCoin             uint64    `json:"silver_coin"`
 
 	cancel context.CancelFunc
 	isStop uint32
