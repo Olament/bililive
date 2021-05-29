@@ -10,7 +10,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type broadcast struct {
+type Broadcast struct {
 	Roomid                 int64
 	UID                    int64
 	Uname                  string
@@ -29,7 +29,7 @@ type broadcast struct {
 	isStop uint32
 }
 
-func (b *broadcast) start() {
+func (b *Broadcast) start() {
 	out := make(chan *message, 10)
 	ctx, cancel := context.WithCancel(context.Background())
 	b.cancel = cancel
@@ -39,7 +39,7 @@ func (b *broadcast) start() {
 	}
 }
 
-func (b *broadcast) stop() {
+func (b *Broadcast) stop() {
 	if ok := atomic.CompareAndSwapUint32(&b.isStop, 0, 1); ok {
 		b.cancel()
 		b.Endtime = time.Now()
@@ -47,7 +47,7 @@ func (b *broadcast) stop() {
 	}
 }
 
-func (b *broadcast) parseMessage(msg *message) {
+func (b *Broadcast) parseMessage(msg *message) {
 	switch msg.operation {
 	case opHeartbeatReply:
 		popularity := binary.BigEndian.Uint32(msg.body)
@@ -79,4 +79,9 @@ func (b *broadcast) parseMessage(msg *message) {
 	default:
 		fmt.Println("worker/broadcast: unidentified message type")
 	}
+}
+
+func (b *Broadcast) Copy() *Broadcast {
+	broadcast := *b
+	return &broadcast
 }

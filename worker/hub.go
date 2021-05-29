@@ -29,8 +29,8 @@ func (h *Hub) Init() {
 	}
 }
 
-func newBroadcast(res gjson.Result) *broadcast {
-	b := broadcast{
+func newBroadcast(res gjson.Result) *Broadcast {
+	b := Broadcast{
 		Roomid:    res.Get("roomid").Int(),
 		UID:       res.Get("uid").Int(),
 		Uname:     res.Get("uname").String(),
@@ -55,14 +55,14 @@ func (h *Hub) update() {
 	for _, res := range list {
 		roomID := res.Get("roomid")
 		if v, ok := h.broadcasts.Load(roomID); ok {
-			v.(*broadcast).Keyframe = res.Get("system_cover").String()
+			v.(*Broadcast).Keyframe = res.Get("system_cover").String()
 		} else {
 			h.broadcasts.Store(roomID, newBroadcast(res))
 		}
 	}
 	// removing stopped broadcast
 	h.broadcasts.Range(func(key, value interface{}) bool {
-		if atomic.LoadUint32(&value.(*broadcast).isStop) == 1 {
+		if atomic.LoadUint32(&value.(*Broadcast).isStop) == 1 {
 			h.broadcasts.Delete(key)
 		}
 		return true
