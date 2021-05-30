@@ -4,6 +4,7 @@ services:
     image: nginx:1.15-alpine
     depends_on:
       - backend
+      - frontend
     ports:
       - "80:80"
     volumes:
@@ -12,3 +13,5 @@ services:
     build: ./backend
     environment:
       - GIN_MODE=release
+  frontend:
+    build: ./frontend
