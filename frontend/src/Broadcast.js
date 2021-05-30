@@ -13,9 +13,9 @@ class Broadcast extends React.Component {
             <Card
                 cover={
                     <img
+                        referrerPolicy="no-referrer"
                         src={item.usercover}
                         alt="cover"
-                        referrerPolicy="no-referrer"
                         onMouseOver={e => (e.currentTarget.src = item.keyframe)}
                         onMouseOut={e => (e.currentTarget.src = item.usercover)}
                         style={{width: 240, height: 125}}
