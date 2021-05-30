@@ -53,7 +53,7 @@ export default class CardList extends React.Component {
                         <Broadcast item={children}></Broadcast>
                     </div>
                 )}
-                getColumnsCount={(container) => (Math.min(Math.floor(container.getWidth() / 240)), 4)}
+                getColumnsCount={(container) => (Math.min(Math.floor(container.getWidth() / 240), 4))}
             />
         );
     }
