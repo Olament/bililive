@@ -49,7 +49,7 @@ export default class CardList extends React.Component {
                 id="broadcasts"
                 items={this.state.data}
                 itemComponent={({children}) => (
-                    <div style={{padding: '8px'}}>
+                    <div style={{padding: '14px 14px 8px'}}>
                         <Broadcast item={children}></Broadcast>
                     </div>
                 )}

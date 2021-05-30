@@ -22,6 +22,7 @@ class Broadcast extends React.Component {
                     />
                 }
                 hoverable={true}
+                bordered={false}
                 style={{width: 240, height: 220}}
             >
                 <Meta
