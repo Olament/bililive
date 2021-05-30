@@ -1,17 +1,14 @@
 import React from 'react';
-import './App.css';
 import 'antd/dist/antd.css';
 import './index.css';
-import 'antd/dist/antd.css';
-import './index.css';
-import {List, Card} from 'antd';
-import {UserOutlined} from '@ant-design/icons';
+import { List } from 'antd';
+import Broadcast from "./Broadcast";
 
-const {Meta} = Card;
 
-class CardList extends React.Component {
+export default class CardList extends React.Component {
     state = {
         loading: true,
+        count: 0,
         data: [],
     };
 
@@ -19,14 +16,16 @@ class CardList extends React.Component {
         clearInterval(this.timer)
         this.getData(res => {
             this.setState({
-                data: res,
+                count: res.count,
+                data: res.list,
                 loading: false,
             })
         })
         this.timer = setInterval(() => {
             this.getData(res => {
                 this.setState({
-                    data: res,
+                    count: res.count,
+                    data: res.list,
                     loading: false,
                 })
             })
@@ -40,7 +39,7 @@ class CardList extends React.Component {
     getData = callback => {
         fetch('https://livevup.com/api/online')
             .then(res => res.json())
-            .then(res => callback(res.list))
+            .then(res => callback(res))
     }
 
     render() {
@@ -59,48 +58,13 @@ class CardList extends React.Component {
                 loading={this.state.loading}
                 renderItem={item => (
                     <List.Item>
-                        <Card
-                            cover={
-                                <img
-                                    src={item.usercover}
-                                    alt="cover"
-                                    referrerPolicy="no-referrer"
-                                    onMouseOver={e => (e.currentTarget.src = item.keyframe)}
-                                    onMouseOut={e => (e.currentTarget.src = item.usercover)}
-                                />
-                            }
-                            hoverable={true}
-                            style={{width: 240}}
+                        <Broadcast
+                            item={item}
                         >
-                            <Meta
-                                title={<a
-                                    href={"https://live.bilibili.com/" + item.roomid}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >{item.title}</a>}
-                                description={
-                                    <div>
-                                        <a
-                                            href={"https://space.bilibili.com/" + item.uid}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            style={{display: 'inline-block', maxWidth: '75%'}}
-                                        >
-                                            {item.uname}
-                                        </a>
-                                        <span style={{float: 'right'}}>
-                                      <UserOutlined/>
-                                            {item.participantDuring10Min}
-                                  </span>
-                                    </div>
-                                }
-                            />
-                        </Card>
+                        </Broadcast>
                     </List.Item>
                 )}
             />
         );
     }
 }
-
-export default CardList;
