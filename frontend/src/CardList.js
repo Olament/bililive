@@ -30,7 +30,7 @@ class CardList extends React.Component {
                     loading: false,
                 })
             })
-        }, 3000)
+        }, 30000)
     };
 
     componentWillUnmount() {
