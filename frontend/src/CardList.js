@@ -1,9 +1,10 @@
 import React from 'react';
 import 'antd/dist/antd.css';
 import './index.css';
-import { List } from 'antd';
+import './App.css';
+// import { List } from 'antd';
 import Broadcast from "./Broadcast";
-
+import VirtualScroller from "virtual-scroller/react";
 
 export default class CardList extends React.Component {
     state = {
@@ -44,26 +45,15 @@ export default class CardList extends React.Component {
 
     render() {
         return (
-            <List
-                grid={{
-                    gutter: 16,
-                    xs: 1,
-                    sm: 1,
-                    md: 2,
-                    lg: 4,
-                    xl: 4,
-                    xxl: 4,
-                }}
-                dataSource={this.state.data}
-                loading={this.state.loading}
-                renderItem={item => (
-                    <List.Item>
-                        <Broadcast
-                            item={item}
-                        >
-                        </Broadcast>
-                    </List.Item>
+            <VirtualScroller
+                id="broadcasts"
+                items={this.state.data}
+                itemComponent={({children}) => (
+                    <div style={{padding: '8px'}}>
+                        <Broadcast item={children}></Broadcast>
+                    </div>
                 )}
+                getColumnsCount={(container) => (4)}
             />
         );
     }

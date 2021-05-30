@@ -1,9 +1,8 @@
 import React from 'react';
 import {Card} from 'antd';
 import {UserOutlined} from '@ant-design/icons';
-import './App.css';
 import 'antd/dist/antd.css';
-import './index.css';
+import './App.css';
 
 const {Meta} = Card;
 
