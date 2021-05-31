@@ -1,8 +1,8 @@
-package worker
+package common
 
 import "time"
 
-type set struct {
+type Set struct {
 	m    map[int64]*node
 	head *node
 	tail *node
@@ -15,8 +15,8 @@ type node struct {
 	next    *node
 }
 
-func Set(diff time.Duration) *set {
-	s := set{
+func NewSet(diff time.Duration) *Set {
+	s := Set{
 		make(map[int64]*node),
 		nil,
 		nil,
@@ -25,7 +25,7 @@ func Set(diff time.Duration) *set {
 	return &s
 }
 
-func (s *set) Add(element int64) {
+func (s *Set) Add(element int64) {
 	n := &node{
 		element: element,
 		time:    time.Now(),
@@ -41,13 +41,13 @@ func (s *set) Add(element int64) {
 	s.m[element] = n
 }
 
-func (s *set) Len() int64 {
+func (s *Set) Len() int64 {
 	for ok := s.evict(); ok; ok = s.evict() {
 	}
 	return int64(len(s.m))
 }
 
-func (s *set) evict() bool {
+func (s *Set) evict() bool {
 	if s.head != nil && time.Now().Sub(s.head.time) > s.diff {
 		if s.head == s.tail {
 			s.tail = nil

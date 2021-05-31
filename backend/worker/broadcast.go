@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"bililive/worker/common"
+	"bililive/worker/danmu"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -27,16 +29,16 @@ type Broadcast struct {
 
 	cancel context.CancelFunc
 	isStop uint32
-	setTTL *set
+	setTTL *common.Set
 }
 
 func (b *Broadcast) start() {
-	out := make(chan *message, 10)
+	out := make(chan *danmu.Message, 10)
 	ctx, cancel := context.WithCancel(context.Background())
 	b.cancel = cancel
-	b.setTTL = Set(time.Minute * 10)
+	b.setTTL = common.NewSet(time.Minute * 10)
 
-	go Connect(ctx, b.Roomid, out)
+	go danmu.Connect(ctx, b.Roomid, out)
 	for msg := range out {
 		b.parseMessage(msg)
 	}
@@ -49,10 +51,10 @@ func (b *Broadcast) stop() {
 	}
 }
 
-func (b *Broadcast) parseMessage(msg *message) {
-	switch msg.operation {
-	case opHeartbeatReply:
-		popularity := binary.BigEndian.Uint32(msg.body)
+func (b *Broadcast) parseMessage(msg *danmu.Message) {
+	switch msg.Operation {
+	case danmu.OpHeartbeatReply:
+		popularity := binary.BigEndian.Uint32(msg.Body)
 		atomic.StoreUint32(&b.Popularity, popularity)
 		if popularity == 1 {
 			b.stop()
@@ -60,26 +62,26 @@ func (b *Broadcast) parseMessage(msg *message) {
 		if popularity > b.MaxPopularity {
 			atomic.StoreUint32(&b.MaxPopularity, popularity)
 		}
-	case opSendSMSReply:
-		switch gjson.GetBytes(msg.body, "cmd").String() {
+	case danmu.OpSendSMSReply:
+		switch gjson.GetBytes(msg.Body, "cmd").String() {
 		case "COMBO_SEND", "SEND_GIFT":
-			res := gjson.GetManyBytes(msg.body, "data.coin_type", "data.total_coin")
+			res := gjson.GetManyBytes(msg.Body, "data.coin_type", "data.total_coin")
 			if res[0].String() == "silver" {
 				atomic.AddUint64(&b.SilverCoin, res[1].Uint())
 			} else {
 				atomic.AddUint64(&b.GoldCoin, res[1].Uint())
 			}
 		case "GUARD_BUY", "SUPER_CHAT_MESSAGE":
-			res := gjson.GetBytes(msg.body, "data.price")
+			res := gjson.GetBytes(msg.Body, "data.price")
 			atomic.AddUint64(&b.GoldCoin, res.Uint())
 		case "DANMU_MSG":
-			uid := gjson.GetBytes(msg.body, "info.2.0").Int()
+			uid := gjson.GetBytes(msg.Body, "info.2.0").Int()
 			b.setTTL.Add(uid)
 			atomic.StoreInt64(&b.Participantduring10Min, b.setTTL.Len())
 		case "PREPARING":
 			b.stop()
 		}
-	case opAuthReply:
+	case danmu.OpAuthReply:
 	default:
 		fmt.Println("worker/broadcast: unidentified message type")
 	}
