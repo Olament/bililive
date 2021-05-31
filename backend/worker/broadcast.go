@@ -87,7 +87,23 @@ func (b *Broadcast) parseMessage(msg *danmu.Message) {
 	}
 }
 
+// return a Copy of broadcast atomically
+// only the public field will be copied and it should only be used for json Marshal
 func (b *Broadcast) Copy() *Broadcast {
-	broadcast := *b
-	return &broadcast
+	broadcast := &Broadcast{
+		Roomid:                 atomic.LoadInt64(&b.Roomid),
+		UID:                    atomic.LoadInt64(&b.UID),
+		Uname:                  b.Uname,
+		Popularity:             atomic.LoadUint32(&b.Popularity),
+		MaxPopularity:          atomic.LoadUint32(&b.MaxPopularity),
+		Title:                  b.Title,
+		Usercover:              b.Usercover,
+		Keyframe:               b.Keyframe,
+		Livetime:               b.Livetime,
+		Endtime:                b.Endtime,
+		Participantduring10Min: atomic.LoadInt64(&b.Participantduring10Min),
+		GoldCoin:               atomic.LoadUint64(&b.GoldCoin),
+		SilverCoin:             atomic.LoadUint64(&b.SilverCoin),
+	}
+	return broadcast
 }
