@@ -1,13 +1,15 @@
 package worker
 
 import (
+	"bililive/worker/common"
 	"fmt"
-	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 const (
@@ -33,14 +35,14 @@ func (h *Hub) Init() {
 
 func newBroadcast(res gjson.Result) *Broadcast {
 	b := Broadcast{
-		Roomid:    res.Get("roomid").Int(),
-		UID:       res.Get("uid").Int(),
-		Uname:     res.Get("uname").String(),
-		Title:     res.Get("title").String(),
-		Usercover: res.Get("cover").String(),
-		Keyframe:  res.Get("system_cover").String(),
-		Livetime:  time.Now(),
-		Popularity: uint32(res.Get("online").Int()),
+		Roomid:        res.Get("roomid").Int(),
+		UID:           res.Get("uid").Int(),
+		Uname:         common.NewString(res.Get("uname").String()),
+		Title:         common.NewString(res.Get("title").String()),
+		Usercover:     common.NewString(res.Get("cover").String()),
+		Keyframe:      common.NewString(res.Get("system_cover").String()),
+		Livetime:      time.Now(),
+		Popularity:    uint32(res.Get("online").Int()),
 		MaxPopularity: uint32(res.Get("online").Int()),
 	}
 	go b.start()
@@ -59,7 +61,7 @@ func (h *Hub) update() {
 	for _, res := range list {
 		roomID := res.Get("roomid")
 		if v, ok := h.broadcasts.Load(roomID); ok {
-			v.(*Broadcast).Keyframe = res.Get("system_cover").String()
+			v.(*Broadcast).Keyframe = common.NewString(res.Get("system_cover").String())
 		} else {
 			h.broadcasts.Store(roomID, newBroadcast(res))
 		}
