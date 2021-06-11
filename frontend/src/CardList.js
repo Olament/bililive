@@ -54,12 +54,18 @@ export default class CardList extends React.Component {
                     itemComponent={({children}) => (
                         <div
                             style={{padding: '14px 14px 8px'}}
-                            onClick={()=>(this.setState({
-                                isModalVisible: true,
-                                modalData: children,
-                            }))}
                         >
-                            <Broadcast item={children}>
+                            <Broadcast
+                                item={children}
+                                modalClick={(e, item)=>{
+                                    if (e.target.nodeName !== 'A') {
+                                        this.setState({
+                                            isModalVisible: true,
+                                            modalData: item,
+                                        })
+                                    }
+                                }}
+                            >
                             </Broadcast>
                         </div>
                     )}

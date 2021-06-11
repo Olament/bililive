@@ -9,6 +9,7 @@ const {Meta} = Card;
 class Broadcast extends React.Component {
     render() {
         const item = this.props.item
+        const modalClick = this.props.modalClick
         return (
             <Card
                 cover={
@@ -24,6 +25,8 @@ class Broadcast extends React.Component {
                 hoverable={true}
                 bordered={false}
                 style={{width: 240, height: 220}}
+                key={item.uid}
+                onClick={(e) => modalClick(e, item)}
             >
                 <Meta
                     title={<a
