@@ -1,4 +1,4 @@
-package worker
+package danmu
 
 import (
 	"bytes"
@@ -11,13 +11,13 @@ import (
 
 const (
 	headerLength     int    = 16
-	opHeartbeat      uint32 = 2
-	opHeartbeatReply uint32 = 3
-	opSendSMSReply   uint32 = 5
-	opAuth           uint32 = 7
-	opAuthReply      uint32 = 8
-	verJSON          uint16 = 0
-	verZLIB          uint16 = 2
+	OpHeartbeat      uint32 = 2
+	OpHeartbeatReply uint32 = 3
+	OpSendSMSReply   uint32 = 5
+	OpAuth           uint32 = 7
+	OpAuthReply      uint32 = 8
+	VerJSON          uint16 = 0
+	VerZLIB          uint16 = 2
 	seqenceID        uint32 = 0
 )
 
@@ -37,44 +37,44 @@ const (
  * │                                   │
  * └───────────────────────────────────┘
  */
-type message struct {
+type Message struct {
 	packageLength uint32
 	headerLength  uint16
 	version       uint16
-	operation     uint32
+	Operation     uint32
 	sequenceID    uint32
-	body          []byte
+	Body          []byte
 }
 
-func decode(buffer []byte) []*message {
+func decode(buffer []byte) []*Message {
 	offset := 0
-	messages := []*message{}
+	messages := []*Message{}
 	for offset < len(buffer) {
-		message := message{
+		message := Message{
 			packageLength: binary.BigEndian.Uint32(buffer[offset+0:]),
 			headerLength:  binary.BigEndian.Uint16(buffer[offset+4:]),
 			version:       binary.BigEndian.Uint16(buffer[offset+6:]),
-			operation:     binary.BigEndian.Uint32(buffer[offset+8:]),
+			Operation:     binary.BigEndian.Uint32(buffer[offset+8:]),
 			sequenceID:    binary.BigEndian.Uint32(buffer[offset+12:]),
 		}
 		bodyBuffer := buffer[offset+int(message.headerLength) : offset+int(message.packageLength)]
-		switch message.operation {
-		case opAuthReply:
+		switch message.Operation {
+		case OpAuthReply:
 			// do nothing
-		case opHeartbeatReply:
-			message.body = bodyBuffer
+		case OpHeartbeatReply:
+			message.Body = bodyBuffer
 		default:
-			if message.version == verJSON {
-				message.body = bodyBuffer
+			if message.version == VerJSON {
+				message.Body = bodyBuffer
 			}
-			if message.version == verZLIB {
+			if message.version == VerZLIB {
 				r, _ := zlib.NewReader(bytes.NewReader(bodyBuffer))
 				b, _ := ioutil.ReadAll(r)
 				messages = append(messages, decode(b)...)
 			}
 		}
 		offset += int(message.packageLength)
-		if message.version != verZLIB {
+		if message.version != VerZLIB {
 			messages = append(messages, &message)
 		}
 	}
@@ -90,7 +90,7 @@ func encode(op uint32, payload string) (buffer []byte) {
 	// header length
 	binary.BigEndian.PutUint16(buff[4:], uint16(headerLength))
 	// version
-	binary.BigEndian.PutUint16(buff[6:], verJSON)
+	binary.BigEndian.PutUint16(buff[6:], VerJSON)
 	// operation
 	binary.BigEndian.PutUint32(buff[8:], op)
 	// sequence id
@@ -103,23 +103,23 @@ func encode(op uint32, payload string) (buffer []byte) {
 
 func joinRoom(roomID int64, uid int) []byte {
 	payload := fmt.Sprintf(`{"uid":%d,"roomid":%d,"protover":2,"platform":"3rd_party"}`, uid, roomID)
-	return encode(opAuth, payload)
+	return encode(OpAuth, payload)
 }
 
 func heartbeat() []byte {
-	return encode(opHeartbeat, "")
+	return encode(OpHeartbeat, "")
 }
 
-func (m *message) String() string {
-	switch m.operation {
-	case opSendSMSReply:
+func (m *Message) String() string {
+	switch m.Operation {
+	case OpSendSMSReply:
 		b := bytes.Buffer{}
-		json.Indent(&b, m.body, "", "\t")
+		json.Indent(&b, m.Body, "", "\t")
 		return fmt.Sprintf("SMS_REPLY\n%s\n", b.String())
-	case opAuthReply:
+	case OpAuthReply:
 		return "Auth\n"
-	case opHeartbeatReply:
-		return fmt.Sprintf("HEARTBEAT\nonline: %d\n", binary.BigEndian.Uint32(m.body))
+	case OpHeartbeatReply:
+		return fmt.Sprintf("HEARTBEAT\nonline: %d\n", binary.BigEndian.Uint32(m.Body))
 	default:
 		return "unidentified message type"
 	}

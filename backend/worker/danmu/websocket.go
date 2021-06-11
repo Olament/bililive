@@ -1,4 +1,4 @@
-package worker
+package danmu
 
 import (
 	"context"
@@ -20,7 +20,7 @@ func randomID() int {
 	return 1e15 + int(rand.Float32()*2e15)
 }
 
-func connect(ctx context.Context, roomID int64, out chan *message) error {
+func connect(ctx context.Context, roomID int64, out chan *Message) error {
 	u := url.URL{
 		Scheme: "wss",
 		Host:   "broadcastlv.chat.bilibili.com:2245",
@@ -61,17 +61,17 @@ func connect(ctx context.Context, roomID int64, out chan *message) error {
 
 // Connect is a blocking function that reads the message from broadcast with roomID and
 // then push it to the out channel
-func Connect(ctx context.Context, roomID int64, out chan *message) {
+func Connect(ctx context.Context, roomID int64, out chan *Message) {
 	err := connect(ctx, roomID, out)
 	if err != nil {
-		fmt.Printf("worker/websocket: [%d] %v\n", roomID, err)
+		fmt.Printf("danmu/websocket: [%d] %v\n", roomID, err)
 	}
 	select {
 	case <-ctx.Done():
 		return
 	default:
 		time.AfterFunc(reconnectDelay+time.Duration(rand.Int31n(100)), func() {
-			fmt.Printf("worker/websocket: [%d] reconnect...\n", roomID)
+			fmt.Printf("danmu/websocket: [%d] reconnect...\n", roomID)
 			Connect(ctx, roomID, out)
 		})
 	}
