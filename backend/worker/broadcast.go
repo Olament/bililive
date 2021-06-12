@@ -83,8 +83,10 @@ func (b *Broadcast) parseMessage(msg *danmu.Message) {
 				atomic.StoreInt64(&b.GoldUser, b.goldUserSet.Len())
 			}
 		case "GUARD_BUY", "SUPER_CHAT_MESSAGE":
-			res := gjson.GetBytes(msg.Body, "data.price")
-			atomic.AddUint64(&b.GoldCoin, res.Uint())
+			res := gjson.GetManyBytes(msg.Body, "data.price", "data.uid")
+			atomic.AddUint64(&b.GoldCoin, res[0].Uint())
+			b.goldUserSet.Add(res[1].Int())
+			atomic.StoreInt64(&b.GoldUser, b.goldUserSet.Len())
 		case "DANMU_MSG":
 			uid := gjson.GetBytes(msg.Body, "info.2.0").Int()
 			b.setTTL.Add(uid)
