@@ -97,10 +97,12 @@ export default class CardList extends React.Component {
                         </Col>
                     </Row>
                     <Row>
-                        <Col span={12}>
+                        <Col>
                             <Statistic title="金瓜子" value={this.state.modalData.goldCoin}/>
                         </Col>
-                        <Col span={6}>
+                    </Row>
+                    <Row>
+                        <Col>
                             <Statistic title="银瓜子" value={this.state.modalData.silverCoin}/>
                         </Col>
                     </Row>
