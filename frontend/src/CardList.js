@@ -89,19 +89,30 @@ export default class CardList extends React.Component {
                         </Col>
                     </Row>
                     <Row>
-                        <Col span={10}>
+                        <Col span={12}>
                             <Statistic title="当前人气" value={this.state.modalData.popularity}/>
                         </Col>
-                        <Col span={5}>
+                        <Col span={6}>
                             <Statistic title="最高人气" value={this.state.modalData.maxPopularity}/>
                         </Col>
                     </Row>
                     <Row>
-                        <Col span={10}>
+                        <Col span={12}>
                             <Statistic title="金瓜子" value={this.state.modalData.goldCoin}/>
                         </Col>
-                        <Col span={5}>
-                            <Statistic title="银色瓜子" value={this.state.modalData.silverCoin}/>
+                        <Col span={6}>
+                            <Statistic title="银瓜子" value={this.state.modalData.silverCoin}/>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={7}>
+                            <Statistic title="付费人数" value={this.state.modalData.goldUser}/>
+                        </Col>
+                        <Col span={7}>
+                            <Statistic title="参与人数" value={this.state.modalData.participant}/>
+                        </Col>
+                        <Col span={7}>
+                            <Statistic title="弹幕数" value={this.state.modalData.danmuCount}/>
                         </Col>
                     </Row>
                 </Modal>
