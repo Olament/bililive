@@ -2,7 +2,9 @@ package common
 
 import "time"
 
-type Set struct {
+// Set with Time-to-live
+// The expire element in the set will be evicted
+type TTLSet struct {
 	m    map[int64]*node
 	head *node
 	tail *node
@@ -15,8 +17,8 @@ type node struct {
 	next    *node
 }
 
-func NewSet(diff time.Duration) *Set {
-	s := Set{
+func NewTTLSet(diff time.Duration) *TTLSet {
+	s := TTLSet{
 		make(map[int64]*node),
 		nil,
 		nil,
@@ -25,7 +27,7 @@ func NewSet(diff time.Duration) *Set {
 	return &s
 }
 
-func (s *Set) Add(element int64) {
+func (s *TTLSet) Add(element int64) {
 	n := &node{
 		element: element,
 		time:    time.Now(),
@@ -41,13 +43,13 @@ func (s *Set) Add(element int64) {
 	s.m[element] = n
 }
 
-func (s *Set) Len() int64 {
+func (s *TTLSet) Len() int64 {
 	for ok := s.evict(); ok; ok = s.evict() {
 	}
 	return int64(len(s.m))
 }
 
-func (s *Set) evict() bool {
+func (s *TTLSet) evict() bool {
 	if s.head != nil && time.Now().Sub(s.head.time) > s.diff {
 		if s.head == s.tail {
 			s.tail = nil

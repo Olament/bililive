@@ -29,14 +29,14 @@ type Broadcast struct {
 
 	cancel context.CancelFunc
 	isStop uint32
-	setTTL *common.Set
+	setTTL *common.TTLSet
 }
 
 func (b *Broadcast) start() {
 	out := make(chan *danmu.Message, 10)
 	ctx, cancel := context.WithCancel(context.Background())
 	b.cancel = cancel
-	b.setTTL = common.NewSet(time.Minute * 10)
+	b.setTTL = common.NewTTLSet(time.Minute * 10)
 
 	go danmu.Connect(ctx, b.Roomid, out)
 	for msg := range out {
