@@ -2,9 +2,13 @@ package worker
 
 import (
 	"bililive/worker/common"
+	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -18,12 +22,22 @@ const (
 
 type Hub struct {
 	broadcasts sync.Map // roomID -> *broadcast
-	client     *http.Client
+	hClient    *http.Client
+	dClient    *mongo.Client
+	ctx        context.Context
 }
 
 func (h *Hub) Init() {
-	h.client = &http.Client{}
+	h.hClient = &http.Client{}
 	h.broadcasts = sync.Map{}
+	h.ctx = context.Background()
+
+	// setup mongodb connection
+	client, err := mongo.Connect(h.ctx, options.Client().ApplyURI(os.Getenv("DB_STR")))
+	if err != nil {
+		panic(err)
+	}
+	h.dClient = client
 
 	h.update()
 	go func() {
@@ -33,7 +47,7 @@ func (h *Hub) Init() {
 	}()
 }
 
-func newBroadcast(res gjson.Result) *Broadcast {
+func (h *Hub) newBroadcast(res gjson.Result) *Broadcast {
 	b := Broadcast{
 		Roomid:        res.Get("roomid").Int(),
 		UID:           res.Get("uid").Int(),
@@ -44,6 +58,8 @@ func newBroadcast(res gjson.Result) *Broadcast {
 		Livetime:      time.Now(),
 		Popularity:    uint32(res.Get("online").Int()),
 		MaxPopularity: uint32(res.Get("online").Int()),
+		ctx:           h.ctx,
+		collection:    h.dClient.Database("livevup").Collection("broadcast"),
 	}
 	go b.start()
 	return &b
@@ -63,7 +79,7 @@ func (h *Hub) update() {
 		if v, ok := h.broadcasts.Load(roomID); ok {
 			v.(*Broadcast).Keyframe = common.NewString(res.Get("system_cover").String())
 		} else {
-			h.broadcasts.Store(roomID, newBroadcast(res))
+			h.broadcasts.Store(roomID, h.newBroadcast(res))
 		}
 	}
 	// removing stopped broadcast
@@ -76,7 +92,7 @@ func (h *Hub) update() {
 }
 
 func (h *Hub) fetch(page int) []gjson.Result {
-	resp, err := h.client.Get(fmt.Sprintf("%s?parent_area_id=%d&page=%d&page_size=%d",
+	resp, err := h.hClient.Get(fmt.Sprintf("%s?parent_area_id=%d&page=%d&page_size=%d",
 		baseURL, 9, page, 99))
 	if err != nil {
 		fmt.Printf("worker/hub: %v\n", err)

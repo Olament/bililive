@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"sync/atomic"
 	"time"
 
@@ -14,42 +15,61 @@ import (
 
 type Broadcast struct {
 	// Meta
-	Roomid    int64          `json:"roomid"`
-	UID       int64          `json:"uid"`
-	Uname     *common.String `json:"uname"`
-	Title     *common.String `json:"title"`
-	Usercover *common.String `json:"usercover"`
-	Keyframe  *common.String `json:"keyframe"`
+	Roomid    int64          `json:"roomid" bson:"roomid"`
+	UID       int64          `json:"uid" bson:"uid"`
+	Uname     *common.String `json:"uname" bson:"uname"`
+	Title     *common.String `json:"title" bson:"title"`
+	Usercover *common.String `json:"usercover" bson:"-"`
+	Keyframe  *common.String `json:"keyframe" bson:"-"`
 	// Stat
-	Popularity             uint32    `json:"popularity"`
-	MaxPopularity          uint32    `json:"maxPopularity"`
-	Livetime               time.Time `json:"livetime"`
-	Endtime                time.Time `json:"-"`
-	Participant            int64     `json:"participant"`
-	Participantduring10Min int64     `json:"participantDuring10Min"`
-	GoldCoin               uint64    `json:"goldCoin"`
-	GoldUser               int64     `json:"goldUser"`
-	SilverCoin             uint64    `json:"silverCoin"`
-	DanmuCount             uint64    `json:"danmuCount"`
+	Popularity             uint32    `json:"popularity" bson:"-"'`
+	MaxPopularity          uint32    `json:"maxPopularity" bson:"maxPopularity"`
+	Livetime               time.Time `json:"livetime" bson:"livetime"`
+	Endtime                time.Time `json:"-" bson:"endtime"`
+	Participant            int64     `json:"participant" bson:"participant"`
+	Participantduring10Min int64     `json:"participantDuring10Min" bson:"-"`
+	GoldCoin               uint64    `json:"goldCoin" bson:"goldCoin"`
+	GoldUser               int64     `json:"goldUser" bson:"goldUser"`
+	SilverCoin             uint64    `json:"silverCoin" bson:"silverCoin"`
+	DanmuCount             uint64    `json:"danmuCount" bson:"danmuCount"`
+	ParticipantTrend       []int64   `json:"-" bson:"participantTrend"`
+	GoldTrend              []uint64  `json:"-" bson:"goldTrend"`
+	DanmuTrend             []uint64  `json:"-" bson:"danmuTrend"`
 
 	isStop         uint32
+	ctx            context.Context
 	cancel         context.CancelFunc
 	setTTL         *common.TTLSet
 	participantSet *common.Set
 	goldUserSet    *common.Set
+	collection     *mongo.Collection
 }
 
 func (b *Broadcast) start() {
-	out := make(chan *danmu.Message, 10)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(b.ctx)
 	b.cancel = cancel
 	b.setTTL = common.NewTTLSet(time.Minute * 10)
 	b.participantSet = common.NewSet()
 	b.goldUserSet = common.NewSet()
+	b.ParticipantTrend = []int64{}
+	b.GoldTrend = []uint64{}
+	b.DanmuTrend = []uint64{}
 
+	out := make(chan *danmu.Message, 10)
 	go danmu.Connect(ctx, b.Roomid, out)
-	for msg := range out {
-		b.parseMessage(msg)
+	ticker := time.NewTicker(time.Minute * 5)
+	for {
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			b.ParticipantTrend = append(b.ParticipantTrend, atomic.LoadInt64(&b.Participantduring10Min))
+			b.GoldTrend = append(b.GoldTrend, atomic.LoadUint64(&b.GoldCoin))
+			b.DanmuTrend = append(b.DanmuTrend, atomic.LoadUint64(&b.DanmuCount))
+		case msg := <-out:
+			b.parseMessage(msg)
+		}
 	}
 }
 
@@ -57,6 +77,10 @@ func (b *Broadcast) stop() {
 	if ok := atomic.CompareAndSwapUint32(&b.isStop, 0, 1); ok {
 		b.cancel()
 		b.Endtime = time.Now()
+		_, err := b.collection.InsertOne(b.ctx, b)
+		if err != nil {
+			fmt.Printf("worker/broadcast: %v\n", err)
+		}
 	}
 }
 

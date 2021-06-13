@@ -1,7 +1,7 @@
 package common
 
 import (
-	"encoding/json"
+	"go.mongodb.org/mongo-driver/bson"
 	"sync/atomic"
 )
 
@@ -32,5 +32,9 @@ func (s *String) Store(v string) {
 }
 
 func (s *String) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.Load())
+	return []byte(s.Load()), nil
+}
+
+func (s *String) MarshalBSON() ([]byte, error) {
+	return bson.Marshal(s.Load())
 }
