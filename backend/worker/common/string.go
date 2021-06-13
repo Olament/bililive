@@ -2,6 +2,7 @@ package common
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"sync/atomic"
 )
 
@@ -35,6 +36,6 @@ func (s *String) MarshalJSON() ([]byte, error) {
 	return []byte(s.Load()), nil
 }
 
-func (s *String) MarshalBSON() ([]byte, error) {
-	return bson.Marshal(s.Load())
+func (s *String) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	return bson.MarshalValue(s.Load())
 }
