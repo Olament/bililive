@@ -8,7 +8,6 @@ import VirtualScroller from "virtual-scroller/react";
 
 export default class CardList extends React.Component {
     state = {
-        loading: true,
         count: 0,
         data: [],
         isModalVisible: false,
@@ -21,7 +20,6 @@ export default class CardList extends React.Component {
             this.setState({
                 count: res.count,
                 data: res.list,
-                loading: false,
             })
         })
         this.timer = setInterval(() => {
@@ -29,7 +27,6 @@ export default class CardList extends React.Component {
                 this.setState({
                     count: res.count,
                     data: res.list,
-                    loading: false,
                 })
             })
         }, 30000)
