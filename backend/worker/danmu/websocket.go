@@ -13,7 +13,6 @@ import (
 const (
 	heartbeatInv   = time.Second * 20
 	reconnectDelay = time.Second * 3
-	timeout        = time.Second * 60
 )
 
 func randomID() int {
