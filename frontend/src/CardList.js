@@ -54,7 +54,7 @@ export default class CardList extends React.Component {
                         >
                             <Broadcast
                                 item={children}
-                                modalClick={(e, item)=>{
+                                modalClick={(e, item) => {
                                     if (e.target.nodeName !== 'A') {
                                         this.setState({
                                             isModalVisible: true,
@@ -75,6 +75,7 @@ export default class CardList extends React.Component {
                         this.setState({isModalVisible: false})
                     }}
                     footer={null}
+                    title={this.state.modalData.title}
                 >
                     <Row gutter={16}>
                         <Col>
