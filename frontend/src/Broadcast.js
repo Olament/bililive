@@ -1,5 +1,5 @@
 import React from 'react';
-import {Card} from 'antd';
+import {Card, Tooltip} from 'antd';
 import {UserOutlined} from '@ant-design/icons';
 import 'antd/dist/antd.css';
 import './App.css';
@@ -45,8 +45,10 @@ class Broadcast extends React.Component {
                                 {item.uname}
                             </a>
                             <span style={{float: 'right'}}>
-                                      <UserOutlined/>
-                                {item.participantDuring10Min}
+                                <Tooltip title="十分钟互动人数">
+                                    <UserOutlined/>
+                                    {item.participantDuring10Min}
+                                </Tooltip>
                             </span>
                         </div>
                     }
