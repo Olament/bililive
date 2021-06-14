@@ -5,12 +5,15 @@ import './App.css';
 import {Statistic, Row, Col, Modal} from 'antd';
 import Broadcast from "./Broadcast";
 import VirtualScroller from "virtual-scroller/react";
+import { LoadingOutlined } from '@ant-design/icons';
+
 
 export default class CardList extends React.Component {
     state = {
         count: 0,
         data: [],
         isModalVisible: false,
+        isLoading: true,
         modalData: {},
     };
 
@@ -20,6 +23,7 @@ export default class CardList extends React.Component {
             this.setState({
                 count: res.count,
                 data: res.list,
+                isLoading: false,
             })
         })
         this.timer = setInterval(() => {
@@ -45,6 +49,7 @@ export default class CardList extends React.Component {
     render() {
         return (
             <>
+                {this.state.isLoading && <LoadingOutlined style={{ fontSize: 24 }} spin />}
                 <VirtualScroller
                     id="broadcasts"
                     items={this.state.data}
