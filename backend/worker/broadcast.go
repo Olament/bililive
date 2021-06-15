@@ -68,7 +68,9 @@ func (b *Broadcast) start() {
 			b.GoldTrend = append(b.GoldTrend, atomic.LoadUint64(&b.GoldCoin))
 			b.DanmuTrend = append(b.DanmuTrend, atomic.LoadUint64(&b.DanmuCount))
 		case msg := <-out:
-			b.parseMessage(msg)
+			if msg != nil { // in case out is already closed by producer
+				b.parseMessage(msg)
+			}
 		}
 	}
 }
