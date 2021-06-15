@@ -43,6 +43,7 @@ func connect(ctx context.Context, roomID int64, out chan *Message) error {
 		select {
 		case <-ctx.Done():
 			close(out)
+			ticker.Stop()
 			return nil
 		case <-ticker.C:
 			conn.WriteMessage(websocket.BinaryMessage, heartbeat)
