@@ -11,7 +11,7 @@ type Payload struct {
 	List  []*Broadcast `json:"list"`
 }
 
-func (h *Hub) List() gin.HandlerFunc {
+func (h *Hub) Online() gin.HandlerFunc {
 	f := func(c *gin.Context) {
 		list := []*Broadcast{}
 		h.broadcasts.Range(func(key, value interface{}) bool {

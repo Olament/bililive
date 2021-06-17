@@ -10,6 +10,6 @@ func main() {
 	hub.Init()
 
 	r := gin.Default()
-	r.GET("/api/online", hub.List())
+	r.GET("/api/online", hub.Online())
 	r.Run()
 }
