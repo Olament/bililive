@@ -71,7 +71,7 @@ export default class CardList extends React.Component {
                             </Broadcast>
                         </div>
                     )}
-                    getColumnsCount={(container) => (Math.min(Math.floor(container.getWidth() / 240), 4))}
+                    getColumnsCount={(container) => (Math.min(Math.floor(container.getWidth() / 268), 4))}
                 />
                 <Modal
                     visible={this.state.isModalVisible}
