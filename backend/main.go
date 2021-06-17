@@ -11,5 +11,6 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/api/online", hub.Online())
+	r.GET("/api/broadcast", hub.PastBroadcast())
 	r.Run()
 }
