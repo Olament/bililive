@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -29,6 +30,17 @@ type ShortBroadcast struct {
 	ParticipantTrend []int64   `json:"participantTrend" bson:"participantTrend"`
 	GoldTrend        []uint64  `json:"goldTrend" bson:"goldTrend"`
 	DanmuTrend       []uint64  `json:"danmuTrend" bson:"danmuTrend"`
+}
+
+type RankItem struct {
+	UID            int64   `json:"uid" bson:"uid"`
+	Uname          string  `json:"uname" bson:"uname"`
+	Duration       float64 `json:"duration" bson:"duration"`
+	Income         float64 `json:"income" bson:"income"`
+	DanmuCount     int64   `json:"danmuCount" bson:"danmuCount"`
+	AvgPaidUser    float64 `json:"avgPaidUser" bson:"avgPaidUser"`
+	AvgParticipant float64 `json:"avgParticipant" bson:"avgParticipant"`
+	AvgViewership  float64 `json:"avgViewership" bson:"avgViewership"`
 }
 
 func (h *Hub) Online() gin.HandlerFunc {
@@ -75,5 +87,40 @@ func (h *Hub) PastBroadcast() gin.HandlerFunc {
 			broadcasts = append(broadcasts, &b)
 		}
 		c.JSON(http.StatusOK, broadcasts)
+	}
+}
+
+func (h *Hub) Rank() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		sortBy := c.Query("sortBy")
+		collection := h.dClient.Database("livevup").Collection("weekly")
+
+		ops := []*options.FindOptions{options.Find().SetLimit(50)}
+		switch sortBy {
+		case "duration":
+			ops = append(ops, options.Find().SetSort(bson.D{{"duration", -1}}))
+		case "viewership":
+			ops = append(ops, options.Find().SetSort(bson.D{{"avgViewership", -1}}))
+		case "paid":
+			ops = append(ops, options.Find().SetSort(bson.D{{"avgPaidUser", -1}}))
+		default: // "income" or anything else
+			ops = append(ops, options.Find().SetSort(bson.D{{"income", -1}}))
+		}
+
+		cursor, err := collection.Find(h.ctx, bson.D{}, ops...)
+		defer cursor.Close(h.ctx)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{})
+			fmt.Printf("worker/api: %v\n", err)
+			return
+		}
+
+		res := []*RankItem{}
+		for cursor.Next(h.ctx) {
+			r := RankItem{}
+			cursor.Decode(&r)
+			res = append(res , &r)
+		}
+		c.JSON(http.StatusOK, res)
 	}
 }
