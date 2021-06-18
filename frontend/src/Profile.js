@@ -1,9 +1,8 @@
 import React from 'react';
 import {List, Statistic, Row, Col, Typography, Card, PageHeader, Tag} from 'antd';
-import {ChartCard, Field, MiniArea, MiniBar, MiniProgress} from 'ant-design-pro/lib/Charts';
 import 'antd/dist/antd.css';
 import './App.css'
-import {withRouter, useHistory} from "react-router";
+import {withRouter} from "react-router";
 
 
 const {Title, Paragraph} = Typography;
