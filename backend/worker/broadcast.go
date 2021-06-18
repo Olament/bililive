@@ -18,6 +18,7 @@ type Broadcast struct {
 	Roomid    int64          `json:"roomid" bson:"roomid"`
 	UID       int64          `json:"uid" bson:"uid"`
 	Uname     *common.String `json:"uname" bson:"uname"`
+	Face      *common.String `json:"-" bson"face"`
 	Title     *common.String `json:"title" bson:"title"`
 	Usercover *common.String `json:"usercover" bson:"-"`
 	Keyframe  *common.String `json:"keyframe" bson:"-"`

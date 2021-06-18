@@ -52,6 +52,7 @@ func (h *Hub) newBroadcast(res gjson.Result) *Broadcast {
 		Roomid:        res.Get("roomid").Int(),
 		UID:           res.Get("uid").Int(),
 		Uname:         common.NewString(res.Get("uname").String()),
+		Face:          common.NewString(res.Get("face").String()),
 		Title:         common.NewString(res.Get("title").String()),
 		Usercover:     common.NewString(res.Get("cover").String()),
 		Keyframe:      common.NewString(res.Get("system_cover").String()),
