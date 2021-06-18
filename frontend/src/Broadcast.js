@@ -1,5 +1,6 @@
 import React from 'react';
 import {Card, Tooltip} from 'antd';
+import {Link} from "react-router-dom";
 import {UserOutlined} from '@ant-design/icons';
 import 'antd/dist/antd.css';
 import './App.css';
@@ -23,7 +24,7 @@ class Broadcast extends React.Component {
                     />
                 }
                 hoverable={true}
-                bordered={false}
+                bordered={true}
                 style={{width: 240, height: 220}}
                 key={item.uid}
                 onClick={(e) => modalClick(e, item)}
@@ -36,14 +37,12 @@ class Broadcast extends React.Component {
                     >{item.title}</a>}
                     description={
                         <div>
-                            <a
-                                href={"https://space.bilibili.com/" + item.uid}
-                                target="_blank"
+                            <Link
+                                to={'/profile/'+item.uid}
                                 rel="noreferrer"
-                                style={{display: 'inline-block', maxWidth: '75%'}}
-                            >
+                                style={{display: 'inline-block', maxWidth: '75%'}}>
                                 {item.uname}
-                            </a>
+                            </Link>
                             <span style={{float: 'right'}}>
                                 <Tooltip title="十分钟互动人数">
                                     <UserOutlined/>

@@ -5,6 +5,7 @@ import './index.css';
 import './App.css';
 import {Layout, Menu} from "antd";
 import CardList from "./CardList";
+import Profile from "./Profile.js";
 import {
     BrowserRouter as Router,
     Switch,
@@ -17,7 +18,7 @@ const {Header, Footer, Content} = Layout;
 ReactDOM.render(
     <React.StrictMode>
         <Router>
-            <Layout>
+            <Layout style={{background: 'white'}}>
                 <Header>
                     <Menu theme="dark" mode="horizontal" defaultSelectedKeys="1">
                         <Menu.Item key="1">
@@ -28,9 +29,12 @@ ReactDOM.render(
                         </Menu.Item>
                     </Menu>
                 </Header>
-                <Content style={{padding: '25px', maxWidth: '1200px', margin: 'auto'}}>
+                <Content style={{padding: '25px', maxWidth: '1200px', margin: 'auto', width: '100%'}}>
                     <div className="site-layout-content">
                         <Switch>
+                            <Route path="/profile/:uid">
+                                <Profile/>
+                            </Route>
                             <Route path="/rank">
                                 "周榜"
                             </Route>
