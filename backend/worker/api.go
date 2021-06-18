@@ -17,6 +17,7 @@ type Payload struct {
 
 type ShortBroadcast struct {
 	Title            string    `json:"title" bson:"title"`
+	Uname            string    `json:"uname" bson:"uname"`
 	MaxPopularity    uint32    `json:"maxPopularity" bson:"maxPopularity"`
 	Livetime         time.Time `json:"livetime" bson:"livetime"`
 	Endtime          time.Time `json:"endTime" bson:"endtime"`
