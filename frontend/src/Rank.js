@@ -102,7 +102,7 @@ class Rank extends React.Component {
                                             <Statistic title="平均同接"
                                                        suffix="人"
                                                        precision={0}
-                                                       value={item.avgParticipant}
+                                                       value={item.avgViewership}
                                             />
                                         </Col>
                                         <Col gutter={4} style={{width: '130px'}}>
