@@ -4,6 +4,8 @@ import (
 	"bililive/worker/common"
 	"context"
 	"fmt"
+	"github.com/jinzhu/now"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"io/ioutil"
@@ -41,8 +43,15 @@ func (h *Hub) Init() {
 
 	h.update()
 	go func() {
-		for _ = range time.Tick(time.Minute * 1) {
-			h.update()
+		updateTicker := time.NewTicker(time.Minute * 1)
+		aggregateTicker := time.NewTicker(time.Hour)
+		for {
+			select {
+			case <-updateTicker.C:
+				h.update()
+			case <-aggregateTicker.C:
+				h.aggregate()
+			}
 		}
 	}()
 }
@@ -106,4 +115,114 @@ func (h *Hub) fetch(page int) []gjson.Result {
 		return nil
 	}
 	return gjson.GetBytes(bs, "data.list").Array()
+}
+
+func (h *Hub) aggregate() {
+	collection := h.dClient.Database("livevup").Collection("broadcast")
+
+	// match every broadcast ended within this week
+	match := bson.D{{
+		"$match",
+		bson.D{{
+			"endtime",
+			bson.D{{
+				"$gte",
+				now.BeginningOfWeek().UTC(),
+			}},
+		}},
+	}}
+
+	// group broadcast with same uid together
+	group := bson.D{{
+		"$group",
+		bson.D{
+			{"_id", "$uid"},
+			// grab the first name
+			{"uname", bson.D{{
+				"$first", "$uname",
+			}}},
+			// calcuate the accumulated time of broadcast
+			{"duration", bson.D{{
+				"$sum",
+				bson.D{{
+					"$divide",
+					[]interface{}{
+						bson.D{{
+							"$subtract",
+							[]interface{}{
+								"$endtime",
+								"$livetime",
+							},
+						}},
+						3600000,
+					},
+				}},
+			}}},
+			// calculate the income in terms of yuan
+			{"income",
+				bson.D{{
+					"$sum", bson.D{{
+						"$divide", []interface{}{
+							"$goldCoin",
+							1000,
+						},
+					}},
+				}}},
+			// accumulated danmu count of the week
+			{"danmuCount", bson.D{{
+				"$sum", "$danmuCount",
+			}}},
+			// average number of paid user per broadcast
+			{"avgPaidUser", bson.D{{
+				"$avg", "$goldUser",
+			}}},
+			// average number of participant per broadcast
+			{"avgParticipant", bson.D{{
+				"$avg", "$participant",
+			}}},
+			// list of participantTrend array, handle it later with reduce
+			{"avgViewership", bson.D{{
+				"$push", "$participantTrend",
+			}}},
+		},
+	}}
+
+	// projection
+	project := bson.D{{
+		"$project", bson.D{
+			{"uid", "$_id"},
+			{"uname", "$uname"},
+			{"duration", "$duration"},
+			{"income", "$income"},
+			{"danmuCount", "$danmuCount"},
+			{"avgPaidUser", "$avgPaidUser"},
+			{"avgParticipant", "$avgParticipant"},
+			// calculate average number of concurrent viewer
+			{"avgViewership", bson.D{{
+				"$avg", bson.D{{
+					"$reduce", bson.D{
+						{"input", "$avgViewership"},
+						{"initialValue", []interface{}{}},
+						{"in", bson.D{{
+							"$concatArrays", []interface{}{
+								"$$value", "$$this",
+							},
+						}}},
+					},
+				}},
+			}}},
+		},
+	}}
+
+	store := bson.D{{
+		"$out", bson.D{
+			{"db", "livevup"},
+			{"coll", "weekly"},
+		},
+	}}
+
+	_, err := collection.Aggregate(h.ctx, mongo.Pipeline{match, group, project, store})
+	if err != nil {
+		fmt.Printf("worker/hub: %v\n", err)
+	}
 }
