@@ -6,6 +6,7 @@ import './App.css';
 import {Layout, Menu} from "antd";
 import CardList from "./CardList";
 import Profile from "./Profile.js";
+import Rank from "./Rank.js";
 import {
     BrowserRouter as Router,
     Switch,
@@ -36,7 +37,7 @@ ReactDOM.render(
                                 <Profile/>
                             </Route>
                             <Route path="/rank">
-                                "周榜"
+                                <Rank/>
                             </Route>
                             <Route path="/">
                                 <CardList/>
