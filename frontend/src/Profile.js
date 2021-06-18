@@ -59,7 +59,7 @@ class Profile extends React.Component {
                                 title="人均付费"
                                 value={
                                     this.average(this.state.data.map(
-                                        (item)=>((item.goldCoin / 100) / Math.max(1, item.goldUser))))
+                                        (item)=>((item.goldCoin / 1000) / Math.max(1, item.goldUser))))
                                 }
                                 precision={2}
                                 suffix="元"
@@ -118,7 +118,7 @@ class Profile extends React.Component {
                                             />
                                         </Col>
                                         <Col gutter={6} style={{width: '130px'}}>
-                                            <Statistic title="营收" suffix="元" value={Math.floor(item.goldCoin / 100)}/>
+                                            <Statistic title="营收" suffix="元" value={Math.floor(item.goldCoin / 1000)}/>
                                         </Col>
                                         <Col gutter={6} style={{width: '130px'}}>
                                             <Statistic title="付费人数" value={item.goldUser}/>
