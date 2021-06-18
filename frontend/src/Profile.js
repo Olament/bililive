@@ -59,8 +59,8 @@ class Profile extends React.Component {
                             <Statistic
                                 title="人均付费"
                                 value={
-                                    this.state.data.reduce((total, item)=>(total + item.goldCoin / 100), 0) /
-                                        this.state.data.reduce((total, item)=>(total + item.goldUser), 1)
+                                    this.average(this.state.data.map(
+                                        (item)=>((item.goldCoin / 100) / Math.max(1, item.goldUser))))
                                 }
                                 precision={2}
                                 suffix="元"
@@ -71,8 +71,8 @@ class Profile extends React.Component {
                             <Statistic
                                 title="人均弹幕"
                                 value={
-                                    this.state.data.reduce((total, item)=>(total + item.danmuCount), 0) /
-                                        this.state.data.reduce((total, item)=>(total + item.participant), 1)
+                                    this.average(this.state.data.map(
+                                        (item)=>(item.danmuCount / Math.max(1, item.participant))))
                                 }
                                 suffix="条"
                                 precision={2}
