@@ -80,7 +80,7 @@ class Rank extends React.Component {
                                         <Col gutter={4} style={{width: '130px'}}>
                                             <Statistic title="营收"
                                                        suffix="元"
-                                                       precision={2}
+                                                       precision={0}
                                                        value={item.income}
                                             />
                                         </Col>
