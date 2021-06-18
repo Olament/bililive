@@ -86,7 +86,8 @@ class Profile extends React.Component {
                                     this.average(this.state.data.reduce((acc, item)=>
                                         (acc.concat(item.participantTrend)), []))
                                 }
-                                precision={2}
+                                suffix="人"
+                                precision={0}
                                 style={{width: '120px'}}
                             />
                         </Col>
