@@ -3,6 +3,7 @@ import {List, Statistic, Row, Col, Radio} from 'antd';
 import 'antd/dist/antd.css';
 import './App.css'
 import {withRouter} from "react-router";
+import {Link} from "react-router-dom";
 
 
 class Rank extends React.Component {
@@ -59,7 +60,7 @@ class Rank extends React.Component {
                     renderItem={item => (
                         <List.Item>
                             <List.Item.Meta
-                                title={item.uname}
+                                title={<Link to={'/profile/'+item.uid}>{item.uname}</Link>}
                                 avatar={
                                     <img
                                         referrerPolicy="no-referrer"
