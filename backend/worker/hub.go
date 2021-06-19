@@ -141,6 +141,10 @@ func (h *Hub) aggregate() {
 			{"uname", bson.D{{
 				"$first", "$uname",
 			}}},
+			// grab profile pic
+			{"face", bson.D{{
+				"$last", "$face",
+			}}},
 			// calcuate the accumulated time of broadcast
 			{"duration", bson.D{{
 				"$sum",
@@ -192,6 +196,7 @@ func (h *Hub) aggregate() {
 		"$project", bson.D{
 			{"uid", "$_id"},
 			{"uname", "$uname"},
+			{"face", "$face"},
 			{"duration", "$duration"},
 			{"income", "$income"},
 			{"danmuCount", "$danmuCount"},

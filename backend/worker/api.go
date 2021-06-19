@@ -35,6 +35,7 @@ type ShortBroadcast struct {
 type RankItem struct {
 	UID            int64   `json:"uid" bson:"uid"`
 	Uname          string  `json:"uname" bson:"uname"`
+	Face           string  `json:"face" bson:"face"`
 	Duration       float64 `json:"duration" bson:"duration"`
 	Income         float64 `json:"income" bson:"income"`
 	DanmuCount     int64   `json:"danmuCount" bson:"danmuCount"`
@@ -119,7 +120,7 @@ func (h *Hub) Rank() gin.HandlerFunc {
 		for cursor.Next(h.ctx) {
 			r := RankItem{}
 			cursor.Decode(&r)
-			res = append(res , &r)
+			res = append(res, &r)
 		}
 		c.JSON(http.StatusOK, res)
 	}
