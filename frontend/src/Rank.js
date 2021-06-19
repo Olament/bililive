@@ -63,7 +63,7 @@ class Rank extends React.Component {
                                 avatar={
                                     <img
                                         referrerPolicy="no-referrer"
-                                        src="https://i2.hdslb.com/bfs/face/9c01434a7af30190393778a1636153e9336474dd.jpg"
+                                        src={item.face}
                                         alt="face"
                                         style={{width: 100, height: 100}}
                                     />
