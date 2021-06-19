@@ -80,9 +80,13 @@ func (b *Broadcast) stop() {
 	if ok := atomic.CompareAndSwapUint32(&b.isStop, 0, 1); ok {
 		b.cancel()
 		b.Endtime = time.Now()
-		_, err := b.collection.InsertOne(b.ctx, b)
-		if err != nil {
-			fmt.Printf("worker/broadcast: %v\n", err)
+		// store the broadcast only if it last longer than 5 min
+		// prevent potential duplicate broadcast
+		if b.Endtime.Sub(b.Livetime) > time.Minute * 5 {
+			_, err := b.collection.InsertOne(b.ctx, b)
+			if err != nil {
+				fmt.Printf("worker/broadcast: %v\n", err)
+			}
 		}
 	}
 }
