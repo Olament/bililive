@@ -4,6 +4,7 @@ import 'antd/dist/antd.css';
 import './index.css';
 import './App.css';
 import {Layout, Menu} from "antd";
+import { WaterMark } from '@ant-design/pro-layout';
 import CardList from "./CardList";
 import Profile from "./Profile.js";
 import Rank from "./Rank.js";
@@ -34,7 +35,17 @@ ReactDOM.render(
                     <div className="site-layout-content">
                         <Switch>
                             <Route path="/profile/:uid">
-                                <Profile/>
+                                <WaterMark
+                                    rotate={-22}
+                                    content='LiveVUP.com'
+                                    fontColor='rgba(0,0,0,.15)'
+                                    fontSize={16}
+                                    zIndex={9}
+                                    gapX={150}
+                                    gapY={212}
+                                >
+                                    <Profile/>
+                                </WaterMark>
                             </Route>
                             <Route path="/rank">
                                 <Rank/>
