@@ -56,6 +56,7 @@ class Profile extends React.Component {
                         href={"https://space.bilibili.com/" + this.props.match.params.uid}
                         target="_blank"
                         rel="noreferrer"
+                        style={{color: '#1890ff'}}
                     >
                         {this.state.data.length > 0 ? this.state.data[0].uname : "未知"}
                     </a>

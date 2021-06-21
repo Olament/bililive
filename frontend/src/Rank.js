@@ -60,7 +60,7 @@ class Rank extends React.Component {
                     renderItem={item => (
                         <List.Item>
                             <List.Item.Meta
-                                title={<Link to={'/profile/'+item.uid}>{item.uname}</Link>}
+                                title={<Link to={'/profile/'+item.uid} style={{color: '#1890ff'}}>{item.uname}</Link>}
                                 avatar={
                                     <img
                                         referrerPolicy="no-referrer"
