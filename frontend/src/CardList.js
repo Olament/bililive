@@ -2,16 +2,18 @@ import React from 'react';
 import 'antd/dist/antd.css';
 import './index.css';
 import './App.css';
-import {Statistic, Row, Col, Modal} from 'antd';
+import {Statistic, Row, Col, Modal, Input} from 'antd';
 import Broadcast from "./Broadcast";
 import VirtualScroller from "virtual-scroller/react";
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, SearchOutlined} from '@ant-design/icons';
 
 
 export default class CardList extends React.Component {
     state = {
         count: 0,
         data: [],
+        visible: [],
+        typingTimeout: 0,
         isModalVisible: false,
         isLoading: true,
         modalData: {},
@@ -23,6 +25,7 @@ export default class CardList extends React.Component {
             this.setState({
                 count: res.count,
                 data: res.list,
+                visible: res.list,
                 isLoading: false,
             })
         })
@@ -31,6 +34,7 @@ export default class CardList extends React.Component {
                 this.setState({
                     count: res.count,
                     data: res.list,
+                    visible: res.list,
                 })
             })
         }, 30000)
@@ -46,18 +50,32 @@ export default class CardList extends React.Component {
             .then(res => callback(res))
     }
 
+    search = (e) => {
+        this.setState({
+            visible: this.state.data.filter(item => item.uname.includes(e.target.value))
+        })
+    }
+
     render() {
         return (
             <>
+                <Input
+                    placeholder="搜索 VUP"
+                    onChange={debounce(this.search, 300)}
+                    bordered={false}
+                    prefix={<SearchOutlined />}
+                    style={{display: 'flex',  justifyContent:'center', alignItems:'center'}}
+                />
                 {this.state.isLoading && <LoadingOutlined style={{ fontSize: 24 }} spin />}
                 <VirtualScroller
                     id="broadcasts"
-                    items={this.state.data}
+                    items={this.state.visible}
                     itemComponent={({children}) => (
                         <div
                             style={{padding: '14px 14px 8px'}}
                         >
                             <Broadcast
+                                id={children.uid}
                                 item={children}
                                 modalClick={(e, item) => {
                                     if (e.target.nodeName !== 'A') {
@@ -123,5 +141,14 @@ export default class CardList extends React.Component {
                 </Modal>
             </>
         );
+    }
+}
+
+function debounce(callback, wait) {
+    let timeout
+    return (...args) => {
+        const context = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => callback.apply(context, args), wait)
     }
 }
