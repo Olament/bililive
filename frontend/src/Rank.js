@@ -13,7 +13,10 @@ class Rank extends React.Component {
     }
 
     componentDidMount() {
-        this.update("income")
+        const urlParams = new URLSearchParams(this.props.history.location.search);
+        const sortBy = urlParams.get("sortBy")
+        console.log(sortBy)
+        this.update(sortBy === null ? "income": sortBy)
     }
 
     getData = (sortBy, callback) => {
@@ -22,12 +25,16 @@ class Rank extends React.Component {
             .then(res => callback(res))
     }
 
-    update = (sortBy) => (
+    update = (sortBy) => {
+        console.log(sortBy)
+        this.props.history.push({
+            search: '?sortBy=' + sortBy,
+        })
         this.getData(sortBy, (res) => (this.setState({
             data: res,
-            loading: false
+            loading: false,
         })))
-    )
+    }
 
     handleRadio = (e) => {
         this.setState({
@@ -37,12 +44,14 @@ class Rank extends React.Component {
     }
 
     render() {
+        const urlParams = new URLSearchParams(this.props.history.location.search);
+        const sortBy = urlParams.get("sortBy") === null ? "income": urlParams.get("sortBy")
         return (
             <div>
                 <span>
                     排序：
                     <Radio.Group
-                        defaultValue="income"
+                        defaultValue={sortBy}
                         buttonStyle="solid"
                         onChange={this.handleRadio}
                     >
