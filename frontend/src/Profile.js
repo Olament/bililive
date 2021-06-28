@@ -5,6 +5,7 @@ import 'antd/dist/antd.css';
 import './App.css'
 import {withRouter} from "react-router";
 import moment from 'moment';
+import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 
 const {Title, Paragraph} = Typography;
@@ -74,6 +75,7 @@ class Profile extends React.Component {
                                 precision={2}
                                 suffix="元"
                                 style={{width: '120px'}}
+                                loading={this.state.loading}
                             />
                         </Col>
                         <Col gutter={12}>
@@ -86,6 +88,7 @@ class Profile extends React.Component {
                                 suffix="条"
                                 precision={2}
                                 style={{width: '120px'}}
+                                loading={this.state.loading}
                             />
                         </Col>
                         <Col gutter={12}>
@@ -98,6 +101,7 @@ class Profile extends React.Component {
                                 suffix="人"
                                 precision={0}
                                 style={{width: '120px'}}
+                                loading={this.state.loading}
                             />
                         </Col>
                     </Row>
