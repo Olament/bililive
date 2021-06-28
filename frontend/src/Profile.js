@@ -5,7 +5,6 @@ import 'antd/dist/antd.css';
 import './App.css'
 import {withRouter} from "react-router";
 import moment from 'moment';
-import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 
 const {Title, Paragraph} = Typography;
@@ -155,7 +154,7 @@ class Profile extends React.Component {
                                                 livetime: item.livetime,
                                                 participantTrend: item.participantTrend,
                                                 goldTrend: item.goldTrend,
-                                                danmuTrend: item.danmuTrend,
+                                                danmuTrend: item.danmuTrend.map((e, i, a) => (i === 0 ? e : e - a[i - 1])).slice(1),
                                             }}
                                         />
                                     </>
@@ -178,7 +177,7 @@ class TabsCard extends React.Component {
     };
 
     onTabChange = (key, type) => {
-        this.setState({ [type]: key });
+        this.setState({[type]: key});
     };
 
     convertTrend = (startDate, trend) => {
@@ -193,7 +192,8 @@ class TabsCard extends React.Component {
         const {livetime, participantTrend, goldTrend, danmuTrend} = this.props.data
         const incomeTrend = goldTrend.map((element) => ((element / 1000)))
         const contentListNoTitle = {
-            viewership: <MiniArea line height={100} animate={false} data={this.convertTrend(livetime, participantTrend)}/>,
+            viewership: <MiniArea line height={100} animate={false}
+                                  data={this.convertTrend(livetime, participantTrend)}/>,
             income: <MiniArea line height={100}
                               animate={false}
                               color="#d9f7be"
@@ -208,7 +208,7 @@ class TabsCard extends React.Component {
         return (
             <>
                 <Card
-                    style={{ width: '100%' }}
+                    style={{width: '100%'}}
                     bordered={false}
                     bodyStyle={{padding: '0 0 24px 0'}}
                     tabList={[
@@ -222,7 +222,7 @@ class TabsCard extends React.Component {
                         },
                         {
                             key: 'danmu',
-                            tab: '弹幕趋势',
+                            tab: '弹幕密度',
                         },
                     ]}
                     activeTabKey={this.state.key}
