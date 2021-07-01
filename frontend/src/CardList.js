@@ -52,7 +52,9 @@ export default class CardList extends React.Component {
 
     search = (e) => {
         this.setState({
-            visible: this.state.data.filter(item => item.uname.includes(e.target.value))
+            visible: this.state.data.filter(item => {
+                return item.uname.includes(e.target.value) || item.title.includes(e.target.value)
+            })
         })
     }
 
